@@ -1,6 +1,3 @@
->[!TIP]
->Read this first.
-
 <p align="center">
   <h1 align="center">Erik's SQL Portfolio ✨</h1>
 
