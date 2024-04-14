@@ -84,23 +84,23 @@ AND (avg_revenue>300 OR avg_tenure>5);
 # How do PTO days vary by company size and revenue performance within an industry?
 SELECT company_name,
 	CASE 
-    	WHEN employees > 10000 THEN 'Large'
-        WHEN employees > 2000 THEN 'Medium'
-        ELSE 'Small'
-    END AS company_size,
-    CASE
-    	WHEN revenue < (SELECT AVG(revenue) FROM fortune_companies WHERE industry = c.industry) THEN 'Below Average'
-        ELSE 'Above Average'
-    END AS revenue_performance, AVG(paid_time_off_days) AS average_PTO
+    		WHEN employees > 10000 THEN 'Large'
+        	WHEN employees > 2000 THEN 'Medium'
+        	ELSE 'Small'
+	END AS company_size,
+	CASE
+    		WHEN revenue < (SELECT AVG(revenue) FROM fortune_companies WHERE industry = c.industry) THEN 'Below Average'
+        	ELSE 'Above Average'
+    	END AS revenue_performance, AVG(paid_time_off_days) AS average_PTO
 FROM fortune_companies c
 GROUP BY
 	company_name,
-    CASE
-    	WHEN employees > 10000 THEN 'Large'
-        WHEN employees > 2000 THEN 'Medium'
-        ELSE 'Small'
-    END,
-    CASE
-    	WHEN revenue < (SELECT AVG(revenue) FROM fortune_companies WHERE industry = c.industry) THEN 'Below Average'
-        ELSE 'Above Average'
-    END;
+	CASE
+    		WHEN employees > 10000 THEN 'Large'
+        	WHEN employees > 2000 THEN 'Medium'
+        	ELSE 'Small'
+    	END,
+    	CASE
+    		WHEN revenue < (SELECT AVG(revenue) FROM fortune_companies WHERE industry = c.industry) THEN 'Below Average'
+        	ELSE 'Above Average'
+    	END;
