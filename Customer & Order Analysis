@@ -47,3 +47,34 @@ FROM FebSales Feb
 LEFT JOIN customers cxs
 ON cxs.order_id = feb.orderID
 WHERE Feb.Quantity>2 AND length(orderid)=6 AND orderid <> 'Order ID';
+
+#10. Select order date/times between specified timeframe
+SELECT orderdate
+FROM FebSales
+WHERE orderdate BETWEEN '02/13/19 00:00' AND '02/18/19 00:00';
+
+#11. Select location for order that was placed at specified date/time
+SELECT location
+FROM FebSales
+WHERE orderdate = '02/18/19 01:35';
+
+#12. Select quantity of sales from a specific day (24 hour period)
+SELECT SUM(Quantity)
+FROM FebSales
+WHERE orderdate like '02/18/19%';
+
+#13. Select battery products
+SELECT distinct Product
+FROM FebSales
+WHERE Product like '%Batteries%';
+
+#14. Select products that end in '.99'
+SELECT distinct Product, Price
+FROM FebSales
+WHERE Price like '%.99';
+
+#15. List all the products sold in Los Angeles in February, and include how many of each were sold.
+SELECT distinct Product, Quantity
+FROM FebSales
+WHERE location like '%Los Angeles%'
+GROUP BY Product;
