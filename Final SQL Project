@@ -1,0 +1,155 @@
+# # In this SQL, I'm querying a database with multiple tables in it about music and music sales
+
+#1. Show customers (Their full names, customer ID, and country) who are not in the U.S.
+SELECT FirstName, LastName, CustomerID, Country
+  FROM customers
+ WHERE country <> 'USA';
+
+#2. Show only customers from Brazil
+SELECT *
+  FROM customers
+ WHERE country = 'Brazil';
+
+#3. Find the invoices of customers who are from Brazil. The resulting table will show the customer's full name, invoice ID, Date of the invoice and billing Country
+SELECT cx.FirstName,
+       cx.LastName,
+       inv.InvoiceId,
+       inv.InvoiceDate,
+       BillingCountry
+  FROM invoices inv
+       LEFT JOIN customers cx ON inv.CustomerId = cx.CustomerId
+ WHERE cx.Country = 'Brazil';
+
+#4. Show the Employees who are Sales Agents
+SELECT *
+  FROM employees
+ WHERE Title LIKE 'Sales Support Agent';
+
+#5. Find a unique/distinct list of billing countries from the Invoice Table
+SELECT BillingCountry
+  FROM invoices
+ GROUP BY BillingCountry;
+ 
+#6. Provide a query that shows the invoices associated with each sales agent. 
+SELECT empl.Employeeid,
+       empl.FirstName,
+       empl.LastName,
+       inv.invoiceid
+  FROM employees empl
+       LEFT JOIN customers cxs ON empl.EmployeeId = cxs.SupportRepId
+       LEFT JOIN invoices inv ON cxs.CustomerId = inv.CustomerId
+ WHERE empl.Title = 'Sales Support Agent';
+
+#7. SHow the invoice total, customer name, country and sales agent name for all invoices and customers
+SELECT inv.Total,
+       cxs.FirstName || ' ' || cxs.LastName AS CustomerName,
+       cxs.Country,
+       empl.Employeeid,
+       empl.FirstName || ' ' || empl.LastName AS EmployeeName
+  FROM employees empl
+       LEFT JOIN customers cxs ON empl.EmployeeId = cxs.SupportRepId
+       LEFT JOIN invoices inv ON cxs.CustomerId = inv.CustomerId
+ WHERE empl.Title = 'Sales Support Agent';
+
+#8. How many invoices were there in 2009?
+SELECT COUNT(*)
+  FROM invoices
+ WHERE InvoiceDate LIKE '2009%';
+
+#9. What are the total sales for 2009
+SELECT SUM(Total) AS total_sales
+  FROM invoices
+ WHERE InvoiceDate LIKE '2009%';
+
+#10. Write a query that includes the purchased track name with each invoice line ID
+SELECT invoice_items.InvoiceLineId,
+       tracks.Name
+  FROM invoice_items
+       LEFT JOIN tracks ON invoice_items.TrackId = tracks.TrackId
+ ORDER BY invoice_items.InvoiceLineId;
+
+#11. Write a query that includes the purchased track name and artist name with each invoice line ID
+SELECT invoice_items.InvoiceLineId,
+       tracks.Name,
+       tracks.Composer
+  FROM invoice_items
+       LEFT JOIN tracks ON invoice_items.TrackId = tracks.TrackId
+ ORDER BY invoice_items.InvoiceLineId;
+
+#12. Provide a query that shows all tracks and include the Album name, Media type, and genre
+SELECT tracks.Name,
+       albums.Title,
+       media_types.Name,
+       genres.Name
+  FROM tracks
+       LEFT JOIN albums ON tracks.AlbumId = albums.AlbumId
+       LEFT JOIN media_types ON tracks.MediaTypeId = media_types.MediaTypeId
+       LEFT JOIN genres ON tracks.GenreId = genres.GenreId;
+
+#12. Show the total sales made by each sales agent
+SELECT empl.Employeeid,
+       empl.FirstName || ' ' || empl.LastName AS EmployeeName,
+       SUM(inv.total) AS TotalSales
+  FROM employees empl
+       LEFT JOIN customers cxs ON empl.EmployeeId = cxs.SupportRepId
+       LEFT JOIN invoices inv ON cxs.CustomerId = inv.CustomerId
+ WHERE empl.Title = 'Sales Support Agent'
+ GROUP BY empl.EmployeeID;
+
+#13. Which sales agent made the most dollars in sales in 2009?
+SELECT empl.Employeeid,
+       empl.FirstName || ' ' || empl.LastName AS EmployeeName,
+       SUM(inv.total) AS TotalSales
+  FROM employees empl
+       LEFT JOIN customers cxs ON empl.EmployeeId = cxs.SupportRepId
+       LEFT JOIN invoices inv ON cxs.CustomerId = inv.CustomerId
+ WHERE empl.Title = 'Sales Support Agent' AND 
+       inv.InvoiceDate LIKE '2009%'
+ GROUP BY empl.EmployeeID
+ ORDER BY TotalSales DESC
+ LIMIT 1;
+
+#14. Which artists generate the most revenue
+SELECT artists.Name,
+       SUM(invoices.Total) AS revenue
+  FROM invoices
+       LEFT JOIN invoice_items ON invoices.InvoiceId = invoice_items.InvoiceId
+       LEFT JOIN tracks ON tracks.TrackId = invoice_items.TrackId
+       LEFT JOIN albums ON tracks.AlbumId = albums.AlbumId
+       LEFT JOIN artists ON albums.ArtistId = artists.ArtistId
+ WHERE artists.Name IS NOT NULL
+ GROUP BY artists.Name
+ ORDER BY revenue DESC;
+ 
+#15. Which genres sell the most per country
+SELECT invoices.BillingCountry,
+       genres.Name,
+       SUM(invoices.Total) AS revenue
+  FROM invoices
+       LEFT JOIN invoice_items ON invoices.InvoiceId = invoice_items.InvoiceId
+       LEFT JOIN tracks ON tracks.TrackId = invoice_items.TrackId
+       LEFT JOIN genres ON tracks.GenreId = genres.GenreId
+ GROUP BY invoices.BillingCountry, genres.Name
+ ORDER BY invoices.BillingCountry, revenue DESC;
+
+#16. Organize customers into spending tiers
+SELECT customer_segment,
+       COUNT(DISTINCT CustomerId) AS number_of_customers,
+       AVG(total_spent) AS average_spending
+  FROM (
+           SELECT customers.CustomerId,
+                  customers.FirstName,
+                  customers.LastName,
+                  SUM(invoices.Total) AS total_spent,
+                  CASE 
+                      WHEN SUM(invoices.Total) < 38 THEN 'Low Spenders' 
+                      WHEN SUM(invoices.Total) BETWEEN 38 AND 41 THEN 'Moderate Spenders' 
+                      WHEN SUM(invoices.Total) > 40 THEN 'High Spenders' 
+                  END AS customer_segment
+             FROM customers
+                  LEFT JOIN invoices ON customers.CustomerId = invoices.CustomerId
+            GROUP BY customers.CustomerId
+       )
+       AS spending_summary
+ GROUP BY customer_segment
+ ORDER BY average_spending DESC;
